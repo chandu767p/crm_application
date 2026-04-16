@@ -24,11 +24,15 @@ import Projects from './pages/Projects';
 import EmailTemplates from './pages/EmailTemplates';
 import Calendar from './pages/Calendar';
 import VersionHistory from './pages/VersionHistory';
+import Settings from './pages/Settings';
 import PrivateRoute from './components/common/PrivateRoute';
+import NotFound from './pages/NotFound';
+import ScrollToTop from './components/common/ScrollToTop';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <ThemeProvider>
           <ToastProvider>
@@ -63,10 +67,11 @@ export default function App() {
                   <Route path="projects" element={<PrivateRoute screen="projects"><Projects /></PrivateRoute>} />
                   <Route path="calendar" element={<PrivateRoute screen="calendar"><Calendar /></PrivateRoute>} />
                   <Route path="email-templates" element={<PrivateRoute screen="email-templates"><EmailTemplates /></PrivateRoute>} />
+                  <Route path="settings" element={<PrivateRoute screen="admin"><Settings /></PrivateRoute>} />
                   <Route path="version-history" element={<PrivateRoute><VersionHistory /></PrivateRoute>} />
                 </Route>
 
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </SocketProvider>
           </ToastProvider>

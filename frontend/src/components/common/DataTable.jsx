@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import Pagination from './Pagination';
 import LoadingSpinner from './LoadingSpinner';
+import { TableSkeleton } from '../ui/Skeleton';
 
 export default function DataTable({
   columns = [],
@@ -297,11 +298,8 @@ export default function DataTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={visibleColumns.length + 3} className="py-16 text-center">
-                  <div className="flex flex-col items-center gap-3 text-gray-400">
-                    <LoadingSpinner size="lg" />
-                    <span className="text-sm">Loading...</span>
-                  </div>
+                <td colSpan={visibleColumns.length + 3} className="px-6 py-8">
+                  <TableSkeleton rows={pagination?.limit || 10} cols={visibleColumns.length + 2} />
                 </td>
               </tr>
             ) : (!data || data.length === 0) ? (

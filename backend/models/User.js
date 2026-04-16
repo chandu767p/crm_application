@@ -9,6 +9,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple nulls
+    },
+    avatar: {
+      type: String,
+    },
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -19,9 +27,12 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
       select: false,
+      // Only required if no googleId is present
+      required: function() {
+        return !this.googleId;
+      }
     },
     role: {
       type: mongoose.Schema.Types.ObjectId,

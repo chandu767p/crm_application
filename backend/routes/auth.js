@@ -1,4 +1,6 @@
 const express = require('express');
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const {
   register,
@@ -28,5 +30,19 @@ router.post('/2fa/verify', protect, verify2FA);
 router.post('/2fa/disable', protect, disable2FA);
 router.post('/2fa/login', login2FA);
 router.put('/preferences', protect, updatePreferences);
+
+// Google OAuth
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
+  // Generate JWT token for social login
+  const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '7d',
+  });
+
+  // Redirect to frontend with token
+  const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?token=${token}`;
+  res.redirect(redirectUrl);
+});
 
 module.exports = router;

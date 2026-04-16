@@ -1,13 +1,17 @@
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
-const morgan = require('morgan');
 const dotenv = require('dotenv');
-const { Server } = require('socket.io');
-const connectDB = require('./config/db');
-const errorHandler = require('./middleware/errorHandler');
-
 dotenv.config();
+const { Server } = require('socket.io');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/db');
+const passport = require('passport');
+require('./config/passport');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
+
 connectDB();
 
 const app = express();
@@ -34,8 +38,24 @@ io.on('connection', (socket) => {
 // Export io for controllers
 exports.io = io;
 
+app.use(passport.initialize());
+app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
-app.use(morgan('dev'));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+});
+app.use('/api/', limiter);
+
+// Logging with Winston instead of Morgan
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -62,16 +82,19 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/email-templates', require('./routes/emailTemplates'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/saved-filters', require('./routes/savedFilters'));
+app.use('/api/settings', require('./routes/settings'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log(`   Environment: ${process.env.NODE_ENV || 'development'}\n`);
-  console.log(`   🔌 Socket.IO attached\n`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    logger.info(`🚀 Server running on http://localhost:${PORT}`);
+    logger.info(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`   🔌 Socket.IO attached`);
+  });
+}
 
-module.exports = { app, io };
+module.exports = { app, io, server };

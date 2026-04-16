@@ -54,10 +54,18 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const loginWithToken = useCallback(async (token) => {
+    localStorage.setItem('crm_token', token);
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const res = await api.get('/auth/me');
+    setUser(res.data.user);
+    return res.data.user;
+  }, []);
+
   const updateUserState = useCallback((updatedUser) => setUser(updatedUser), []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, login2FA, register, logout, updateUserState }}>
+    <AuthContext.Provider value={{ user, loading, login, login2FA, register, logout, loginWithToken, updateUserState }}>
       {children}
     </AuthContext.Provider>
   );

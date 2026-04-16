@@ -14,7 +14,7 @@ const PAGE_KEYS = {
 
 export default function Navbar({ onMenuClick }) {
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const key = PAGE_KEYS[location.pathname] || 'dashboard';
 
   return (
@@ -37,6 +37,19 @@ export default function Navbar({ onMenuClick }) {
           {new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}
         </span>
         <NotificationBell />
+        
+        {/* Language Switcher */}
+        <div className="flex items-center ml-2 border-l pl-2 border-gray-200 dark:border-gray-700">
+          <select 
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+            value={i18n.language}
+            className="bg-transparent text-[10px] font-bold tracking-widest uppercase focus:outline-none cursor-pointer p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            style={{ color: 'var(--navbar-text)' }}
+          >
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+          </select>
+        </div>
       </div>
     </header>
   );

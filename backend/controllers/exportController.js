@@ -9,6 +9,8 @@ const Activity = require('../models/Activity');
 const CustomerActivity = require('../models/CustomerActivity');
 const Role = require('../models/Role');
 const APIFeatures = require('../utils/apiFeatures');
+const { generatePDF } = require('../utils/pdfGenerator');
+const logger = require('../utils/logger');
 
 const flattenObject = (obj, prefix = '') => {
   return Object.keys(obj || {}).reduce((acc, key) => {
@@ -161,6 +163,18 @@ exports.exportData = async (req, res, next) => {
       }
       return flat;
     });
+
+    const format = req.query.format || 'csv';
+
+    if (format === 'pdf') {
+      const title = `${module.charAt(0).toUpperCase() + module.slice(1)} Report`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${module}_report_${Date.now()}.pdf"`);
+      
+      generatePDF(rows, title, res);
+      logger.info(`PDF Export generated for ${module} by ${req.user.id}`);
+      return;
+    }
 
     const csv = toCSV(rows, requestedColumns);
 
