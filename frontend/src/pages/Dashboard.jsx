@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Chart } from 'primereact/chart';
+import Chart from 'chart.js/auto';
 import api from '../services/api';
 import { formatCurrency, statusColors, capitalize } from '../utils/helpers';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -44,6 +44,16 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Canvas Refs
+  const funnelRef = useRef(null);
+  const sourceRef = useRef(null);
+  const activityRef = useRef(null);
+
+  // Chart Instance Refs (to handle cleanup)
+  const funnelChart = useRef(null);
+  const sourceChart = useRef(null);
+  const activityChart = useRef(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,52 +68,111 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (!stats || loading) return;
+
+    const cleanup = () => {
+      [funnelChart, sourceChart, activityChart].forEach(ref => {
+        if (ref.current) {
+          ref.current.destroy();
+          ref.current = null;
+        }
+      });
+    };
+
+    cleanup();
+
+    // 1. Sales Funnel Chart
+    if (funnelRef.current) {
+      funnelChart.current = new Chart(funnelRef.current, {
+        type: 'bar',
+        data: {
+          labels: stats.charts.leadsByStatus.map(s => capitalize(s._id)),
+          datasets: [{
+            data: stats.charts.leadsByStatus.map(s => s.count),
+            backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff', '#f1f5f9', '#94a3b8'],
+            borderRadius: 4,
+            barThickness: 12
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { display: false },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 7 }, color: '#bdbdbd' }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Acquisition Doughnut
+    if (sourceRef.current) {
+      sourceChart.current = new Chart(sourceRef.current, {
+        type: 'doughnut',
+        data: {
+          labels: stats.charts.leadsBySource.map(s => capitalize(s._id)),
+          datasets: [{
+            data: stats.charts.leadsBySource.map(s => s.count),
+            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '50%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // 3. Activity Pulse Chart
+    if (activityRef.current) {
+      activityChart.current = new Chart(activityRef.current, {
+        type: 'line',
+        data: {
+          labels: stats.charts.activityTrend.map(t => new Date(t._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+          datasets: [{
+            label: 'Activity',
+            data: stats.charts.activityTrend.map(t => t.count),
+            fill: true,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.03)',
+            tension: 0.4,
+            pointRadius: 1,
+            borderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 7 }, color: '#ffffffff' }
+            },
+            y: {
+              grid: { color: '#001a57ff' },
+              ticks: { font: { size: 7 }, color: '#bdbdbd' }
+            }
+          }
+        }
+      });
+    }
+
+    return cleanup;
+  }, [stats, loading]);
+
   if (loading || !stats) {
     return <div className="flex items-center justify-center h-full"><LoadingSpinner size="lg" /></div>;
   }
-
-  // Chart Configurations - Scaled down for compact side-by-side layout
-  const pipelineData = {
-    labels: stats.charts.leadsByStatus.map(s => capitalize(s._id)),
-    datasets: [{
-      data: stats.charts.leadsByStatus.map(s => s.count),
-      backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff', '#f1f5f9', '#94a3b8'],
-      borderRadius: 4,
-      barThickness: 12
-    }]
-  };
-
-  const sourceData = {
-    labels: stats.charts.leadsBySource.map(s => capitalize(s._id)),
-    datasets: [{
-      data: stats.charts.leadsBySource.map(s => s.count),
-      backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
-      hoverOffset: 8,
-      borderWidth: 2,
-      borderColor: '#ffffff'
-    }]
-  };
-
-  const activityData = {
-    labels: stats.charts.activityTrend.map(t => new Date(t._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-    datasets: [{
-      label: 'Activity',
-      data: stats.charts.activityTrend.map(t => t.count),
-      fill: true,
-      borderColor: '#6366f1',
-      backgroundColor: 'rgba(99, 102, 241, 0.03)',
-      tension: 0.4,
-      pointRadius: 1,
-      borderWidth: 1.5
-    }]
-  };
-
-  const commonOptions = {
-    plugins: { legend: { display: false } },
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { y: { display: false }, x: { display: false } }
-  };
 
   return (
     <div className="flex flex-col h-full space-y-3 overflow-y-auto pb-4 pr-1 custom-scrollbar">
@@ -127,12 +196,69 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Summary - 4-Column Grid */}
+      {/* Stats Summary - 8-Card High-Density Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Pipeline" value={formatCurrency(stats.summary.pipelineValue)} color="text-blue-600" to="/leads" icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} trend={-2} />
-        <StatCard label="Active Leads" value={stats.summary.leads} color="text-indigo-600" to="/leads" icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>} trend={12} />
-        <StatCard label="Won Deals" value={stats.summary.wonDeals} color="text-green-600" to="/leads" icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>} trend={5} />
-        <StatCard label="Urgent" value={stats.summary.urgentTickets} color="text-red-500" to="/tickets" icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>} trend={-1} />
+        <StatCard
+          label="Total Leads"
+          value={stats.summary.leads}
+          color="text-indigo-600"
+          to="/leads"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+          trend={12}
+        />
+        <StatCard
+          label="Active Deals"
+          value={stats.summary.activeDeals}
+          color="text-blue-600"
+          to="/deals"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+          trend={5}
+        />
+        <StatCard
+          label="Won Revenue"
+          value={formatCurrency(stats.summary.wonRevenue)}
+          color="text-green-600"
+          to="/deals"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          trend={8}
+        />
+        <StatCard
+          label="Open Tickets"
+          value={stats.summary.openTickets}
+          color="text-orange-500"
+          to="/tickets"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+          trend={-2}
+        />
+        <StatCard
+          label="Contacts"
+          value={stats.summary.contacts}
+          color="text-teal-600"
+          to="/contacts"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+        />
+        <StatCard
+          label="Accounts"
+          value={stats.summary.accounts}
+          color="text-slate-600"
+          to="/accounts"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+        />
+        <StatCard
+          label="Projects"
+          value={stats.summary.projects}
+          color="text-purple-600"
+          to="/projects"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+        />
+        <StatCard
+          label="Overdue Tasks"
+          value={stats.summary.pendingTasks}
+          color="text-red-600"
+          to="/tasks"
+          icon={<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          trend={stats.summary.pendingTasks > 0 ? 1 : 0}
+        />
       </div>
 
       {/* Visualisation Row - Triple Side-by-Side */}
@@ -144,7 +270,7 @@ export default function Dashboard() {
             <span className="text-[8px] text-gray-400 font-bold uppercase">Pipeline</span>
           </div>
           <div className="flex-1">
-            <Chart type="bar" data={pipelineData} options={{ ...commonOptions, scales: { x: { display: true, grid: { display: false }, ticks: { font: { size: 7 }, color: '#bdbdbd' } } } }} />
+            <canvas ref={funnelRef} />
           </div>
         </div>
 
@@ -154,10 +280,10 @@ export default function Dashboard() {
             <h3 className="text-[10px] font-bold text-gray-800 uppercase tracking-tighter">Acquisition</h3>
             <span className="text-[8px] text-gray-400 font-bold uppercase">Sources</span>
           </div>
-          <div className="flex-1 flex items-center justify-center min-h-[140px]">
+          <div className="flex-1 flex items-center justify-center min-h-[120px]">
             {/* Centered container for the doughnut and its overlay */}
             <div className="relative w-28 h-28">
-              <Chart type="doughnut" data={sourceData} options={{ ...commonOptions, cutout: '80%', maintainAspectRatio: true }} />
+              <canvas ref={sourceRef} />
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-xs font-bold text-gray-800 leading-none">{stats.summary.leads}</span>
                 <span className="text-[6px] text-gray-400 font-bold tracking-[0.2em] uppercase mt-0.5">Total</span>
@@ -173,7 +299,7 @@ export default function Dashboard() {
             <span className="text-[8px] text-gray-400 font-bold uppercase">Trends</span>
           </div>
           <div className="flex-1">
-            <Chart type="line" data={activityData} options={{ ...commonOptions, scales: { x: { display: true, grid: { display: false }, ticks: { font: { size: 7 }, color: '#bdbdbd' } }, y: { display: true, grid: { color: '#fcfcfc' }, ticks: { font: { size: 7 }, color: '#bdbdbd' } } } }} />
+            <canvas ref={activityRef} />
           </div>
         </div>
       </div>
@@ -226,7 +352,7 @@ export default function Dashboard() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[9px]">
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {stats.recentLeads.slice(0, 5).map(lead => (
                 <tr key={lead._id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-3 py-1.5 font-bold text-gray-700">{lead.name}</td>

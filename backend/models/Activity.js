@@ -9,7 +9,7 @@ const activitySchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: ['created', 'updated', 'deleted', 'note_added', 'note_updated', 'note_deleted', 'status_changed', 'assigned', 'converted', 'logged'],
+      enum: ['created', 'updated', 'deleted', 'note_added', 'note_updated', 'note_deleted', 'status_changed', 'assigned', 'converted', 'logged', 'login', 'logout', 'failed_login', 'viewed'],
       default: 'logged',
     },
     subject: {
@@ -19,6 +19,14 @@ const activitySchema = new mongoose.Schema(
       maxlength: [200],
     },
     description: {
+      type: String,
+      trim: true,
+    },
+    requestUrl: {
+      type: String,
+      trim: true,
+    },
+    requestMethod: {
       type: String,
       trim: true,
     },
@@ -34,7 +42,7 @@ const activitySchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ['Lead', 'Contact', 'Account', 'Deal', 'Task', 'Note'],
+      enum: ['Lead', 'Contact', 'Account', 'Deal', 'Task', 'Note', 'User', 'Role', 'System'],
     },
     activityDate: {
       type: Date,
@@ -43,12 +51,12 @@ const activitySchema = new mongoose.Schema(
     relatedTo: {
       type: mongoose.Schema.Types.ObjectId,
       refPath: 'onModel',
-      required: true,
+      required: false,
     },
     onModel: {
       type: String,
-      enum: ['Lead', 'Contact', 'Account', 'Deal'],
-      required: true,
+      enum: ['Lead', 'Contact', 'Account', 'Deal', 'User', 'Role', 'Task'],
+      required: false,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

@@ -63,6 +63,10 @@ exports.getLead = async (req, res, next) => {
       .populate('assignedTo', 'name email')
       .populate('account', 'name');
     if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+
+    // Log View
+    await logRecordView(req, lead._id, 'Lead', lead.name);
+
     res.json({ success: true, data: lead });
   } catch (err) {
     next(err);

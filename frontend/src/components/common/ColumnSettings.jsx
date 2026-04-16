@@ -52,9 +52,8 @@ export default function ColumnSettings({ columns, onChange }) {
       <button
         id="column-settings-toggle"
         onClick={() => setShowMenu(!showMenu)}
-        className={`btn-secondary btn-sm h-8 px-3 flex items-center gap-2 transition-all shadow-sm ${
-          showMenu ? 'bg-gray-100 border-gray-400' : ''
-        }`}
+        className={`btn-secondary btn-sm h-8 px-3 flex items-center gap-2 transition-all shadow-sm ${showMenu ? 'bg-gray-100 border-gray-400' : ''
+          }`}
       >
         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -80,9 +79,8 @@ export default function ColumnSettings({ columns, onChange }) {
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
                 onDragEnd={() => { setDragOverIdx(null); dragIdxRef.current = null; }}
-                className={`flex items-center gap-2.5 px-3 py-1.5 hover:bg-blue-50/50 cursor-pointer transition-colors ${
-                  dragOverIdx === idx ? 'bg-blue-50 border-y border-blue-100' : ''
-                }`}
+                className={`flex items-center gap-2.5 px-3 py-1.5 hover:bg-blue-50/50 cursor-pointer transition-colors ${dragOverIdx === idx ? 'bg-blue-50 border-y border-blue-100' : ''
+                  }`}
               >
                 <span title="Drag to reorder" className="text-gray-200 hover:text-blue-400 cursor-grab active:cursor-grabbing text-[9px] w-3 font-black">⋮⋮</span>
                 <input

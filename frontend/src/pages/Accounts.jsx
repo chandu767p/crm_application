@@ -166,7 +166,7 @@ export default function Accounts() {
             </svg>
           </button>
 
-          <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+          <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
             <button
               onClick={() => setViewType('table')}
               className={`p-1.5 rounded-md transition-colors ${viewType === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}

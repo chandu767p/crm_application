@@ -10,7 +10,7 @@ const resources = {
       accounts: 'Accounts', users: 'Users', roles: 'Roles', calls: 'Calls',
       emails: 'Emails', meetings: 'Meetings', tickets: 'Tickets', tasks: 'Tasks',
       employees: 'Employees', projects: 'Projects', calendar: 'Calendar',
-      emailTemplates: 'Email Templates', versionHistory: 'Version History',
+      emailTemplates: 'Email Templates', versionHistory: 'Version History', auditLogs: 'Audit Log',
       // Common
       add: 'Add', edit: 'Edit', delete: 'Delete', save: 'Save', cancel: 'Cancel',
       search: 'Search', filter: 'Filter', export: 'Export', import: 'Import',
@@ -39,7 +39,7 @@ const resources = {
       accounts: 'Cuentas', users: 'Usuarios', roles: 'Roles', calls: 'Llamadas',
       emails: 'Correos', meetings: 'Reuniones', tickets: 'Tickets', tasks: 'Tareas',
       employees: 'Empleados', projects: 'Proyectos', calendar: 'Calendario',
-      emailTemplates: 'Plantillas de Email', versionHistory: 'Historial de Versiones',
+      emailTemplates: 'Plantillas de Email', versionHistory: 'Historial de Versiones', auditLogs: 'Registro de Auditoría',
       // Common
       add: 'Agregar', edit: 'Editar', delete: 'Eliminar', save: 'Guardar', cancel: 'Cancelar',
       search: 'Buscar', filter: 'Filtrar', export: 'Exportar', import: 'Importar',
@@ -67,7 +67,7 @@ const resources = {
       accounts: 'Comptes', users: 'Utilisateurs', roles: 'Rôles', calls: 'Appels',
       emails: 'E-mails', meetings: 'Réunions', tickets: 'Tickets', tasks: 'Tâches',
       employees: 'Employés', projects: 'Projets', calendar: 'Calendrier',
-      emailTemplates: 'Modèles d\'E-mail', versionHistory: 'Historique des versions',
+      emailTemplates: 'Modèles d\'E-mail', versionHistory: 'Historique des versions', auditLogs: 'Journal d\'audit',
       add: 'Ajouter', edit: 'Modifier', delete: 'Supprimer', save: 'Enregistrer', cancel: 'Annuler',
       search: 'Rechercher', filter: 'Filtrer', export: 'Exporter', import: 'Importer',
       refresh: 'Actualiser', view: 'Voir', close: 'Fermer', confirm: 'Confirmer',

@@ -1,5 +1,6 @@
 const Contact = require('../models/Contact');
 const APIFeatures = require('../utils/apiFeatures');
+const { logActivity, logFieldChanges, logRecordView } = require('../utils/activityLogger');
 
 // @desc    Get all contacts
 // @route   GET /api/contacts
@@ -58,6 +59,10 @@ exports.getContact = async (req, res, next) => {
       .populate('assignedTo', 'name email')
       .populate('account', 'name');
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
+
+    // Log View
+    await logRecordView(req, contact._id, 'Contact', contact.name);
+
     res.json({ success: true, data: contact });
   } catch (err) {
     next(err);
@@ -76,6 +81,13 @@ exports.createContact = async (req, res, next) => {
       { path: 'assignedTo', select: 'name email' },
       { path: 'account', select: 'name' }
     ]);
+
+    // Log Creation
+    await logActivity(req, contact._id, 'Contact', 'created', {
+      subject: 'Contact Created',
+      description: `Created contact "${contact.name}"`
+    });
+
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
     next(err);
@@ -87,6 +99,9 @@ exports.createContact = async (req, res, next) => {
 // @access  Private
 exports.updateContact = async (req, res, next) => {
   try {
+    const oldContact = await Contact.findById(req.params.id);
+    if (!oldContact) return res.status(404).json({ success: false, message: 'Contact not found' });
+
     if (req.body.account === '') req.body.account = null;
     if (req.body.assignedTo === '') req.body.assignedTo = null;
     const contact = await Contact.findByIdAndUpdate(req.params.id, req.body, {
@@ -96,7 +111,11 @@ exports.updateContact = async (req, res, next) => {
       { path: 'assignedTo', select: 'name email' },
       { path: 'account', select: 'name' }
     ]);
-    if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
+
+    // Track field changes
+    const fieldsToTrack = ['name', 'status', 'email', 'phone', 'account', 'assignedTo'];
+    await logFieldChanges(req, contact._id, 'Contact', oldContact, contact, fieldsToTrack);
+
     res.json({ success: true, data: contact });
   } catch (err) {
     next(err);
@@ -108,8 +127,17 @@ exports.updateContact = async (req, res, next) => {
 // @access  Private
 exports.deleteContact = async (req, res, next) => {
   try {
-    const contact = await Contact.findByIdAndDelete(req.params.id);
+    const contact = await Contact.findById(req.params.id);
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
+
+    await Contact.findByIdAndDelete(req.params.id);
+
+    // Log Deletion
+    await logActivity(req, req.params.id, 'Contact', 'deleted', {
+      subject: 'Contact Deleted',
+      description: `Deleted contact "${contact.name}"`
+    });
+
     res.json({ success: true, message: 'Contact deleted' });
   } catch (err) {
     next(err);

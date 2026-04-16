@@ -1,5 +1,6 @@
 const Account = require('../models/Account');
 const APIFeatures = require('../utils/apiFeatures');
+const { logActivity, logFieldChanges, logRecordView } = require('../utils/activityLogger');
 
 // @desc    Get all accounts
 // @route   GET /api/accounts
@@ -41,6 +42,10 @@ exports.getAccount = async (req, res, next) => {
   try {
     const account = await Account.findById(req.params.id).populate('owner', 'name email');
     if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
+
+    // Log View
+    await logRecordView(req, account._id, 'Account', account.name);
+
     res.json({ success: true, data: account });
   } catch (err) {
     next(err);
@@ -54,6 +59,13 @@ exports.createAccount = async (req, res, next) => {
   try {
     const account = await Account.create(req.body);
     const populated = await account.populate('owner', 'name email');
+
+    // Log Creation
+    await logActivity(req, account._id, 'Account', 'created', {
+      subject: 'Account Created',
+      description: `Created account "${account.name}"`
+    });
+
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
     next(err);
@@ -65,11 +77,18 @@ exports.createAccount = async (req, res, next) => {
 // @access  Private
 exports.updateAccount = async (req, res, next) => {
   try {
+    const oldAccount = await Account.findById(req.params.id);
+    if (!oldAccount) return res.status(404).json({ success: false, message: 'Account not found' });
+
     const account = await Account.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     }).populate('owner', 'name email');
-    if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
+
+    // Track field changes
+    const fieldsToTrack = ['name', 'industry', 'website', 'phone', 'owner'];
+    await logFieldChanges(req, account._id, 'Account', oldAccount, account, fieldsToTrack);
+
     res.json({ success: true, data: account });
   } catch (err) {
     next(err);
@@ -81,8 +100,17 @@ exports.updateAccount = async (req, res, next) => {
 // @access  Private
 exports.deleteAccount = async (req, res, next) => {
   try {
-    const account = await Account.findByIdAndDelete(req.params.id);
+    const account = await Account.findById(req.params.id);
     if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
+
+    await Account.findByIdAndDelete(req.params.id);
+
+    // Log Deletion
+    await logActivity(req, req.params.id, 'Account', 'deleted', {
+      subject: 'Account Deleted',
+      description: `Deleted account "${account.name}"`
+    });
+
     res.json({ success: true, message: 'Account deleted' });
   } catch (err) {
     next(err);

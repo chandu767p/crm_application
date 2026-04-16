@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const User = require('../models/User');
-const { sendPasswordResetEmail } = require('../utils/mailer');
+const { logActivity } = require('../utils/activityLogger');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
@@ -39,6 +39,13 @@ exports.register = async (req, res, next) => {
     }
     const user = await User.create({ name, email, password, role, mustChangePassword: true });
     await user.populate('role');
+
+    // Log registration
+    await logActivity({ ...req, user: { id: user._id } }, user._id, 'User', 'created', {
+      subject: 'New User Registered',
+      description: `User ${user.name} registered and created an account.`
+    });
+
     sendToken(user, 201, res);
   } catch (err) {
     next(err);
@@ -75,6 +82,13 @@ exports.login = async (req, res, next) => {
 
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
+
+    // Log Activity
+    await logActivity({ ...req, user: { id: user._id } }, user._id, 'User', 'login', {
+      subject: 'User Login',
+      description: `User ${user.name} logged in successfully.`
+    });
+
     sendToken(user, 200, res);
   } catch (err) {
     next(err);
@@ -303,6 +317,13 @@ exports.login2FA = async (req, res, next) => {
 
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
+
+    // Log Activity
+    await logActivity({ ...req, user: { id: user._id } }, user._id, 'User', 'login', {
+      subject: 'User Login (2FA)',
+      description: `User ${user.name} logged in successfully via 2FA.`
+    });
+
     sendToken(user, 200, res);
   } catch (err) {
     next(err);

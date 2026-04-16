@@ -18,7 +18,7 @@ export default function ViewModal({ isOpen, onClose, data, title = 'Details', on
     if (!data?._id || !onModel) return;
     setLoadingActivities(true);
     try {
-      const res = await api.get(`/activities?relatedTo=${data._id}&onModel=${onModel}`);
+      const res = await api.get(`/activities/timeline/${onModel}/${data._id}`);
       setActivities(res.data.data);
     } catch (err) {
       console.error('Failed to fetch activities', err);

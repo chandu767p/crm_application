@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logActivity, logFieldChanges, logRecordView } = require('../utils/activityLogger');
 
 const buildQuery = (query) => {
   const filter = {};
@@ -49,6 +50,10 @@ exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).populate('role');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Log View
+    await logRecordView(req, user._id, 'User', user.name);
+
     res.json({ success: true, data: user });
   } catch (err) {
     next(err);
@@ -62,6 +67,13 @@ exports.createUser = async (req, res, next) => {
   try {
     const user = await User.create(req.body);
     await user.populate('role');
+
+    // Log Creation
+    await logActivity(req, user._id, 'User', 'created', {
+      subject: 'User Created',
+      description: `Created user account for ${user.name}`
+    });
+
     res.status(201).json({ success: true, data: user });
   } catch (err) {
     next(err);
@@ -73,6 +85,9 @@ exports.createUser = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateUser = async (req, res, next) => {
   try {
+    const oldUser = await User.findById(req.params.id);
+    if (!oldUser) return res.status(404).json({ success: false, message: 'User not found' });
+
     const updates = { ...req.body };
     delete updates.password; // password updated via separate endpoint
 
@@ -80,7 +95,11 @@ exports.updateUser = async (req, res, next) => {
       new: true,
       runValidators: true,
     }).populate('role');
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Track changes
+    const fieldsToTrack = ['name', 'email', 'role', 'active'];
+    await logFieldChanges(req, user._id, 'User', oldUser, user, fieldsToTrack);
+
     res.json({ success: true, data: user });
   } catch (err) {
     next(err);
@@ -95,8 +114,17 @@ exports.deleteUser = async (req, res, next) => {
     if (req.params.id === req.user.id.toString()) {
       return res.status(400).json({ success: false, message: 'Cannot delete your own account' });
     }
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    await User.findByIdAndDelete(req.params.id);
+
+    // Log Deletion
+    await logActivity(req, req.params.id, 'User', 'deleted', {
+      subject: 'User Deleted',
+      description: `Deleted user account "${user.name}"`
+    });
+
     res.json({ success: true, message: 'User deleted' });
   } catch (err) {
     next(err);

@@ -117,7 +117,7 @@ export default function DataTable({
   const hasActiveFilters = Object.values(columnFilters).some((f) => f && f.value !== '' && f.value !== undefined);
 
   return (
-    <div className="card flex flex-col h-full min-h-0 overflow-hidden p-0 border-gray-200/60 shadow-sm">
+    <div className="card flex flex-col h-full min-h-0 overflow-hidden p-0 shadow-sm">
       {/* Toolbar */}
       {(toolbar || someSelected || hasActiveFilters) && (
         <div className="flex flex-wrap items-center justify-between gap-2 px-2 py-1 border-b border-gray-100 bg-gray-50/50">
@@ -156,7 +156,7 @@ export default function DataTable({
       <div className="overflow-auto custom-scrollbar flex-1 min-h-0">
         <table className="w-full text-[11px] border-separate border-spacing-0">
           <thead>
-            <tr className="bg-gray-50/80 border-b border-gray-100">
+            <tr className="bg-gray-50/80">
               {/* Checkbox */}
               <th className="w-8 px-2 py-1 sticky top-0 bg-gray-50 z-10 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)] align-middle">
                 <input
@@ -168,7 +168,7 @@ export default function DataTable({
               </th>
 
               {/* S.No. */}
-              <th className="px-2 py-1 text-left font-bold text-gray-400 sticky top-0 bg-gray-50 z-10 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)] whitespace-nowrap select-none w-10 align-middle text-[9px] uppercase tracking-tighter border-r border-gray-100/50">
+              <th className="px-2 py-1 text-left font-bold text-gray-400 sticky top-0 bg-gray-50 z-10 shadow-[inset_0_-1px_0_rgba(0,0,0,0.05)] whitespace-nowrap select-none w-10 align-middle text-[9px] uppercase tracking-tighter">
                 #
               </th>
 
@@ -294,7 +294,7 @@ export default function DataTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-50">
+          <tbody>
             {loading ? (
               <tr>
                 <td colSpan={visibleColumns.length + 3} className="py-16 text-center">
@@ -330,7 +330,7 @@ export default function DataTable({
                     className={`hover:bg-blue-50/30 transition-colors ${selectedIds?.includes(row._id) ? 'bg-blue-50' : 'bg-white'
                       }`}
                   >
-                    <td className="px-2 py-1 align-middle border-b border-gray-50/50">
+                    <td className="px-2 py-1 align-middle">
                       <input
                         type="checkbox"
                         checked={selectedIds?.includes(row._id)}
@@ -340,12 +340,12 @@ export default function DataTable({
                     </td>
 
                     {/* S.No. Cell */}
-                    <td className="px-2 py-1 text-gray-400 font-bold text-[9px] align-middle border-b border-gray-50/50 border-r border-gray-50/50">
+                    <td className="px-2 py-1 text-gray-400 font-bold text-[9px] align-middle">
                       {serialNumber}
                     </td>
 
                     {visibleColumns.map((col) => (
-                      <td key={col.key} className="px-2 py-1 text-gray-700 font-medium align-middle border-b border-gray-50/50">
+                      <td key={col.key} className="px-2 py-1 text-gray-700 font-medium align-middle">
                         {col.render ? col.render(row) : (
                           <span className="truncate max-w-xs block leading-tight">
                             {getNestedValue(row, col.key) ?? '—'}
@@ -353,7 +353,7 @@ export default function DataTable({
                         )}
                       </td>
                     ))}
-                    <td className="px-2 py-1 align-middle border-b border-gray-50/50">
+                    <td className="px-2 py-1 align-middle">
                       <div className="flex items-center justify-end gap-0.5">
                         {row._actions}
                       </div>

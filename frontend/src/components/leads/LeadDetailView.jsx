@@ -50,7 +50,7 @@ export default function LeadDetailView({ lead: initialLead, onUpdate, onDelete, 
     if (!lead?._id) return;
     setLoadingActivities(true);
     try {
-      const res = await api.get(`/activities?relatedTo=${lead._id}&onModel=Lead`);
+      const res = await api.get(`/activities/timeline/Lead/${lead._id}`);
       setActivities(res.data.data);
     } catch (err) {
       console.error('Failed to fetch activities', err);

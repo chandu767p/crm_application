@@ -1,5 +1,6 @@
 const Deal = require('../models/Deal');
 const APIFeatures = require('../utils/apiFeatures');
+const { logActivity, logFieldChanges, logRecordView } = require('../utils/activityLogger');
 
 // @desc    Get all deals
 // @route   GET /api/deals
@@ -64,6 +65,10 @@ exports.getDeal = async (req, res, next) => {
       .populate('contact', 'name company')
       .populate('account', 'name');
     if (!deal) return res.status(404).json({ success: false, message: 'Deal not found' });
+
+    // Log View
+    await logRecordView(req, deal._id, 'Deal', deal.name);
+
     res.json({ success: true, data: deal });
   } catch (err) {
     next(err);
@@ -83,6 +88,13 @@ exports.createDeal = async (req, res, next) => {
       { path: 'contact', select: 'name company' },
       { path: 'account', select: 'name' }
     ]);
+
+    // Log Creation
+    await logActivity(req, deal._id, 'Deal', 'created', {
+      subject: 'Deal Created',
+      description: `Created deal "${deal.name}"`
+    });
+
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
     next(err);
@@ -94,6 +106,9 @@ exports.createDeal = async (req, res, next) => {
 // @access  Private
 exports.updateDeal = async (req, res, next) => {
   try {
+    const oldDeal = await Deal.findById(req.params.id);
+    if (!oldDeal) return res.status(404).json({ success: false, message: 'Deal not found' });
+
     if (req.body.contact === '') req.body.contact = null;
     if (req.body.assignedTo === '') req.body.assignedTo = null;
     const deal = await Deal.findByIdAndUpdate(req.params.id, req.body, {
@@ -104,7 +119,10 @@ exports.updateDeal = async (req, res, next) => {
       .populate('contact', 'name company')
       .populate('account', 'name');
 
-    if (!deal) return res.status(404).json({ success: false, message: 'Deal not found' });
+    // Track changes
+    const fieldsToTrack = ['name', 'value', 'stage', 'status', 'contact', 'account', 'assignedTo'];
+    await logFieldChanges(req, deal._id, 'Deal', oldDeal, deal, fieldsToTrack);
+
     res.json({ success: true, data: deal });
   } catch (err) {
     next(err);
@@ -116,8 +134,17 @@ exports.updateDeal = async (req, res, next) => {
 // @access  Private
 exports.deleteDeal = async (req, res, next) => {
   try {
-    const deal = await Deal.findByIdAndDelete(req.params.id);
+    const deal = await Deal.findById(req.params.id);
     if (!deal) return res.status(404).json({ success: false, message: 'Deal not found' });
+
+    await Deal.findByIdAndDelete(req.params.id);
+
+    // Log Deletion
+    await logActivity(req, req.params.id, 'Deal', 'deleted', {
+      subject: 'Deal Deleted',
+      description: `Deleted deal "${deal.name}"`
+    });
+
     res.json({ success: true, message: 'Deal deleted' });
   } catch (err) {
     next(err);

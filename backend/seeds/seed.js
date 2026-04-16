@@ -252,6 +252,54 @@ const seed = async () => {
   await CustomerActivity.insertMany(activityData);
   console.log('✅ 120 Customer Activities (calls/emails/meetings) created');
 
+  // 10. System Audit Logs (100)
+  const auditLogs = Array.from({ length: 100 }).map(() => {
+    const action = faker.helpers.arrayElement(['login', 'viewed', 'created', 'updated', 'status_changed']);
+    const model = faker.helpers.arrayElement(models);
+    const target = faker.helpers.arrayElement(model.list);
+    const user = faker.helpers.arrayElement(users);
+
+    const data = {
+      action,
+      entityType: model.name,
+      createdBy: user._id,
+      activityDate: faker.date.recent({ days: 30 }),
+      requestMethod: faker.helpers.arrayElement(['GET', 'POST', 'PUT', 'DELETE']),
+      requestUrl: `/api/${model.name.toLowerCase()}s/${target._id}`,
+    };
+
+    if (action === 'login') {
+      data.entityType = 'User';
+      data.subject = 'User Login';
+      data.description = `User ${user.name} logged in successfully.`;
+      data.relatedTo = user._id;
+      data.onModel = 'User';
+      data.requestUrl = '/api/auth/login';
+      data.requestMethod = 'POST';
+    } else if (action === 'viewed') {
+      data.subject = `Viewed ${model.name}: ${target.name || target.subject || target._id}`;
+      data.description = `User viewed the details of ${model.name}`;
+      data.relatedTo = target._id;
+      data.onModel = model.name;
+      data.requestMethod = 'GET';
+    } else if (action === 'status_changed') {
+      data.subject = 'Status Changed';
+      data.description = `Status changed to ${target.status}`;
+      data.relatedTo = target._id;
+      data.onModel = model.name;
+    } else {
+      data.subject = `${model.name} ${action}`;
+      data.description = `Operation performed on ${model.name}`;
+      data.relatedTo = target._id;
+      data.onModel = model.name;
+    }
+
+    return data;
+  });
+
+  await Activity.insertMany(auditLogs);
+  console.log('✅ 100 System Audit Logs (monitoring data) created');
+
   console.log(`
 🚀 BULK SEED COMPLETE
 ---------------------

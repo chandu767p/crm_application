@@ -117,11 +117,14 @@ export default function ActivityForm({ isOpen, onClose, relatedTo, onModel, onSu
         activityDate: new Date(form.activityDate).toISOString(),
       };
 
+      const isInteraction = ['call', 'email', 'meeting'].includes(form.type);
+      const endpoint = isInteraction ? '/customer-activities' : '/activities';
+
       if (isEdit) {
-        await api.put(`/activities/${activity._id}`, payload);
+        await api.put(`${endpoint}/${activity._id}`, payload);
         toast.success('Activity updated successfully');
       } else {
-        await api.post('/activities', payload);
+        await api.post(endpoint, payload);
         toast.success(form.status === 'scheduled' ? 'Activity scheduled successfully' : 'Activity logged successfully');
       }
       onSuccess();

@@ -55,9 +55,10 @@ export default function App() {
                   <Route path="tasks" element={<PrivateRoute screen="tasks"><Tasks /></PrivateRoute>} />
                   <Route path="deals" element={<PrivateRoute screen="deals"><Deals /></PrivateRoute>} />
                   <Route path="accounts" element={<PrivateRoute screen="accounts"><Accounts /></PrivateRoute>} />
-                  <Route path="calls" element={<PrivateRoute screen="calls"><ActivitiesPage type="call" /></PrivateRoute>} />
-                  <Route path="emails" element={<PrivateRoute screen="emails"><ActivitiesPage type="email" /></PrivateRoute>} />
-                  <Route path="meetings" element={<PrivateRoute screen="meetings"><ActivitiesPage type="meeting" /></PrivateRoute>} />
+                   <Route path="calls" element={<PrivateRoute screen="calls"><ActivitiesPage type="call" /></PrivateRoute>} />
+                   <Route path="emails" element={<PrivateRoute screen="emails"><ActivitiesPage type="email" /></PrivateRoute>} />
+                   <Route path="meetings" element={<PrivateRoute screen="meetings"><ActivitiesPage type="meeting" /></PrivateRoute>} />
+                   <Route path="audit-logs" element={<PrivateRoute screen="activities"><ActivitiesPage type="system" /></PrivateRoute>} />
                   <Route path="employees" element={<Navigate to="/users" replace />} />
                   <Route path="projects" element={<PrivateRoute screen="projects"><Projects /></PrivateRoute>} />
                   <Route path="calendar" element={<PrivateRoute screen="calendar"><Calendar /></PrivateRoute>} />

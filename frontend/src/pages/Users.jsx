@@ -173,7 +173,7 @@ export default function Users() {
               </svg>
             </button>
             {/* View toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+            <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
               <button
                 onClick={() => setViewMode('table')}
                 className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
