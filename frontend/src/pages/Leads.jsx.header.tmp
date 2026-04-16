@@ -1,0 +1,61 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
+import { useToast } from '../context/ToastContext';
+import DataTable from '../components/common/DataTable';
+import DataGrid from '../components/common/DataGrid';
+import FilterBar from '../components/filters/FilterBar';
+import LeadForm from '../components/forms/LeadForm';
+import ConfirmDialog from '../components/common/ConfirmDialog';
+import BulkUpload from '../components/common/BulkUpload';
+import ExportButton from '../components/common/ExportButton';
+import LeadDetailView from '../components/leads/LeadDetailView';
+import ColumnSettings from '../components/common/ColumnSettings';
+import { formatDate, formatCurrency, statusColors, sourceColors, capitalize, buildColumnFilters } from '../utils/helpers';
+
+const COLUMNS = [
+  {
+    key: 'name', label: 'Name', type: 'text', sortable: true, render: (row) => (
+      <div>
+        <p className="font-medium text-gray-900">{row.name}</p>
+        {row.account?.name && <p className="text-xs text-gray-400">{row.account.name}</p>}
+      </div>
+    )
+  },
+  {
+    key: 'email', label: 'Email', type: 'text', sortable: true, render: (row) => row.email ? (
+      <a href={`mailto:${row.email}`} className="text-blue-600 hover:underline">{row.email}</a>
+    ) : '—'
+  },
+  { key: 'phone', label: 'Phone', type: 'text', render: (row) => row.phone || '—' },
+  {
+    key: 'status', label: 'Status', type: 'text', sortable: true,
+    options: ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'].map(s => ({ value: s, label: capitalize(s) })),
+    render: (row) => (
+      <span className={`badge ${statusColors[row.status] || 'bg-gray-100 text-gray-600'}`}>{capitalize(row.status)}</span>
+    )
+  },
+  {
+    key: 'source', label: 'Source', type: 'text',
+    options: ['website', 'referral', 'social_media', 'email_campaign', 'cold_call', 'event', 'other'].map(s => ({ value: s, label: capitalize(s) })),
+    render: (row) => (
+      <span className={`badge ${sourceColors[row.source] || 'bg-gray-100 text-gray-600'}`}>
+        {capitalize(row.source)}
+      </span>
+    )
+  },
+  {
+    key: 'value', label: 'Value', sortable: true, type: 'number', render: (row) => (
+      <span className="font-medium text-gray-700">{formatCurrency(row.value)}</span>
+    )
+  },
+  {
+    key: 'assignedTo', label: 'Assigned To', render: (row) => (
+      <span className="text-gray-500">{row.assignedTo?.name || '—'}</span>
+    )
+  },
+  {
+    key: 'createdAt', label: 'Created', sortable: true, type: 'date', render: (row) => (
+      <span className="text-gray-400 text-xs">{formatDate(row.createdAt)}</span>
+    )
+  },
+];
