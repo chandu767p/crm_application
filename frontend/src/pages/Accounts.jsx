@@ -59,7 +59,7 @@ export default function Accounts() {
   const [colFilters, setColFilters] = useState({});
   const [columns, setColumns] = useState(COLUMNS);
   const [loading, setLoading] = useState(false);
-  const [viewType, setViewType] = useState('table');
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('accounts_viewMode') || 'table');
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [viewData, setViewData] = useState(null);
@@ -68,6 +68,10 @@ export default function Accounts() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    localStorage.setItem('accounts_viewMode', viewMode);
+  }, [viewMode]);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -166,10 +170,10 @@ export default function Accounts() {
             </svg>
           </button>
 
-          <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
+          <div className="flex bg-gray-100 dark:bg-blue-600 rounded-lg p-1 gap-1">
             <button
-              onClick={() => setViewType('table')}
-              className={`p-1.5 rounded-md transition-colors ${viewType === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-100 hover:text-gray-600 dark:hover:text-gray-200'}`}
               title="Table View"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -177,8 +181,8 @@ export default function Accounts() {
               </svg>
             </button>
             <button
-              onClick={() => setViewType('grid')}
-              className={`p-1.5 rounded-md transition-colors ${viewType === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-100 hover:text-gray-600 dark:hover:text-gray-200'}`}
               title="Grid View"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -214,7 +218,7 @@ export default function Accounts() {
 
       <div className="flex-1 flex flex-row min-h-0 overflow-hidden gap-2">
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {viewType === 'table' ? (
+          {viewMode === 'table' ? (
             <DataTable
               columns={memoizedColumns}
               onColumnsChange={setColumns}

@@ -100,7 +100,7 @@ export default function Tasks() {
   const [colFilters, setColFilters] = useState({});
   const [columns, setColumns] = useState(COLUMNS);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('tasks_viewMode') || 'kanban');
   const [selectedIds, setSelectedIds] = useState([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
@@ -110,6 +110,10 @@ export default function Tasks() {
   const [deleting, setDeleting] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    localStorage.setItem('tasks_viewMode', viewMode);
+  }, [viewMode]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -309,18 +313,18 @@ export default function Tasks() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
-            <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
-              <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`} title="Kanban View">
+            <div className="flex bg-gray-100  rounded-lg p-1 gap-1">
+              <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Kanban View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
                 </svg>
               </button>
-              <button onClick={() => setViewMode('table')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`} title="Table View">
+              <button onClick={() => setViewMode('table')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Table View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
                 </svg>
               </button>
-              <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`} title="Grid View">
+              <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Grid View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
@@ -429,6 +433,6 @@ export default function Tasks() {
       <TaskForm isOpen={formOpen} onClose={() => { setFormOpen(false); setEditTask(null); }} task={editTask} onSuccess={fetchData} />
       <ConfirmDialog isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title="Delete Task" message="Are you sure you want to delete this task?" loading={deleting} />
       <ConfirmDialog isOpen={bulkDeleteOpen} onClose={() => setBulkDeleteOpen(false)} onConfirm={handleBulkDelete} title="Delete Tasks" message={`Delete ${selectedIds.length} tasks?`} loading={deleting} />
-    </div>
+    </div >
   );
 }

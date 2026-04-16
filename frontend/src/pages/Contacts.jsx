@@ -68,7 +68,7 @@ export default function Contacts() {
   const [colFilters, setColFilters] = useState({});
   const [columns, setColumns] = useState(COLUMNS);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('contacts_viewMode') || 'table');
   const [selectedIds, setSelectedIds] = useState([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editContact, setEditContact] = useState(null);
@@ -78,6 +78,10 @@ export default function Contacts() {
   const [deleting, setDeleting] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    localStorage.setItem('contacts_viewMode', viewMode);
+  }, [viewMode]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -171,13 +175,13 @@ export default function Contacts() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
-            <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
-              <button onClick={() => setViewMode('table')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}>
+            <div className="flex bg-gray-100  rounded-lg p-1 gap-1">
+              <button onClick={() => setViewMode('table')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Table View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
                 </svg>
               </button>
-              <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}>
+              <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Cards View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>

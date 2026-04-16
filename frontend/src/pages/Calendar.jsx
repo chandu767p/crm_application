@@ -120,7 +120,7 @@ export default function Calendar() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900">{t('calendar')}</h2>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-900 rounded-lg p-1">
             <button onClick={prevMonth} className="p-1.5 rounded-md hover:bg-white hover:shadow text-gray-500 hover:text-gray-900 transition-all">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>

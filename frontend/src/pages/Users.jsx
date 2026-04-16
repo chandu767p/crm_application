@@ -59,7 +59,7 @@ export default function Users() {
   const [colFilters, setColFilters] = useState({});
   const [columns, setColumns] = useState(COLUMNS);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('users_viewMode') || 'table');
   const [selectedIds, setSelectedIds] = useState([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -70,6 +70,10 @@ export default function Users() {
   const [showFilters, setShowFilters] = useState(false);
   const toast = useToast();
   const { user: currentUser } = useAuth();
+
+  useEffect(() => {
+    localStorage.setItem('users_viewMode', viewMode);
+  }, [viewMode]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -173,19 +177,13 @@ export default function Users() {
               </svg>
             </button>
             {/* View toggle */}
-            <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-              >
+            <div className="flex bg-gray-100  rounded-lg p-1 gap-1">
+              <button onClick={() => setViewMode('table')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Table View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18M3 14h18M3 18h18" />
                 </svg>
               </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-              >
+              <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`} title="Cards View">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
