@@ -1,4 +1,5 @@
 const Role = require('../models/Role');
+const { logActivity, logFieldChanges, logRecordView } = require('../utils/activityLogger');
 
 const buildQuery = (query) => {
   const filter = {};
@@ -46,6 +47,10 @@ exports.getRole = async (req, res, next) => {
   try {
     const role = await Role.findById(req.params.id);
     if (!role) return res.status(404).json({ success: false, message: 'Role not found' });
+
+    // Log View
+    await logRecordView(req, role._id, 'Role', role.name);
+
     res.json({ success: true, data: role });
   } catch (err) {
     next(err);
@@ -58,6 +63,13 @@ exports.getRole = async (req, res, next) => {
 exports.createRole = async (req, res, next) => {
   try {
     const role = await Role.create(req.body);
+
+    // Log Creation
+    await logActivity(req, role._id, 'Role', 'created', {
+      subject: 'Role Created',
+      description: `Created new user role "${role.name}"`
+    });
+
     res.status(201).json({ success: true, data: role });
   } catch (err) {
     next(err);
@@ -69,11 +81,17 @@ exports.createRole = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateRole = async (req, res, next) => {
   try {
+    const oldRole = await Role.findById(req.params.id);
+    if (!oldRole) return res.status(404).json({ success: false, message: 'Role not found' });
+
     const role = await Role.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
-    if (!role) return res.status(404).json({ success: false, message: 'Role not found' });
+
+    // Track changes
+    await logFieldChanges(req, role._id, 'Role', oldRole, role, ['name', 'description', 'permissions']);
+
     res.json({ success: true, data: role });
   } catch (err) {
     next(err);
@@ -85,8 +103,17 @@ exports.updateRole = async (req, res, next) => {
 // @access  Private/Admin
 exports.deleteRole = async (req, res, next) => {
   try {
-    const role = await Role.findByIdAndDelete(req.params.id);
+    const role = await Role.findById(req.params.id);
     if (!role) return res.status(404).json({ success: false, message: 'Role not found' });
+
+    await Role.findByIdAndDelete(req.params.id);
+
+    // Log Deletion
+    await logActivity(req, req.params.id, 'Role', 'deleted', {
+      subject: 'Role Deleted',
+      description: `Deleted user role "${role.name}"`
+    });
+
     res.json({ success: true, message: 'Role deleted' });
   } catch (err) {
     next(err);

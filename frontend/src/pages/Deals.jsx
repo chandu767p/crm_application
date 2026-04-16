@@ -275,57 +275,57 @@ export default function Deals() {
             {/* Vertical Scroll Area for Column */}
             <div className="flex-1 overflow-y-auto p-2 space-y-1.5 min-h-0">
               {groupedDeals[stage.id].map((deal) => (
-                  <div
-                    key={deal._id}
-                    draggable
-                    onDragStart={(e) => onDragStart(e, deal._id)}
-                    className="card p-2 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all cursor-grab active:cursor-grabbing group"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <p className="font-bold text-[11px] text-gray-900 group-hover:text-blue-600 transition-colors truncate flex-1 leading-tight">
-                        {deal.name}
-                      </p>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
-                        <button onClick={() => setViewData(deal)} className="p-0.5 text-gray-300 hover:text-blue-500 transition-colors">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[11px] font-bold text-gray-900">
-                        {formatCurrency(deal.value)}
-                      </span>
-                      <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border tracking-tighter ${deal.probability >= 80 ? 'bg-green-50 text-green-700 border-green-100' :
-                        deal.probability >= 40 ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                          'bg-gray-50 text-gray-700 border-gray-100'
-                        }`}>
-                        {deal.probability}%
-                      </span>
-                    </div>
-
-                    <div className="space-y-0.5 pt-1.5 border-t border-gray-50/50">
-                      {deal.contact && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-medium">
-                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span className="truncate">{deal.contact.name}</span>
-                        </div>
-                      )}
-                      {deal.expectedCloseDate && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-gray-400">
-                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span>{formatDate(deal.expectedCloseDate)}</span>
-                        </div>
-                      )}
+                <div
+                  key={deal._id}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, deal._id)}
+                  className="card p-2 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all cursor-grab active:cursor-grabbing group"
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="font-bold text-[11px] text-gray-900 group-hover:text-blue-600 transition-colors truncate flex-1 leading-tight">
+                      {deal.name}
+                    </p>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                      <button onClick={() => setViewData(deal)} className="p-0.5 text-gray-300 hover:text-blue-500 transition-colors">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
+
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-bold text-gray-900">
+                      {formatCurrency(deal.value)}
+                    </span>
+                    <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded border tracking-tighter ${deal.probability >= 80 ? 'bg-green-50 text-green-700 border-green-100' :
+                      deal.probability >= 40 ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                        'bg-gray-50 text-gray-700 border-gray-100'
+                      }`}>
+                      {deal.probability}%
+                    </span>
+                  </div>
+
+                  <div className="space-y-0.5 pt-1.5 border-t border-gray-50/50">
+                    {deal.contact && (
+                      <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-medium">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="truncate">{deal.contact.name}</span>
+                      </div>
+                    )}
+                    {deal.expectedCloseDate && (
+                      <div className="flex items-center gap-1.5 text-[9px] text-gray-400">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{formatDate(deal.expectedCloseDate)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
 
               {groupedDeals[stage.id].length === 0 && (
@@ -358,7 +358,7 @@ export default function Deals() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
-          <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+          <div className="flex bg-gray-900 rounded-lg p-1 gap-1">
             <button onClick={() => setViewMode('kanban')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white shadow text-blue-600' : 'text-gray-400 hover:text-gray-600'}`} title="Board View">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />

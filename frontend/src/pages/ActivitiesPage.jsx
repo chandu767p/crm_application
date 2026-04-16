@@ -49,13 +49,17 @@ export default function ActivitiesPage({ type }) {
       params.set('limit', limit);
       params.set('sort', sortField);
       params.set('search', searchQuery);
-      if (type) params.set('type', type);
+      
+      const isInteraction = ['call', 'email', 'meeting'].includes(type);
+      const endpoint = isInteraction ? '/customer-activities' : '/activities';
+      
+      if (isInteraction) params.set('type', type);
       if (statusTab) params.set('status', statusTab);
       
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
       buildColumnFilters(params, colFilters);
 
-      const res = await api.get(`/activities?${params}`);
+      const res = await api.get(`${endpoint}?${params}`);
       setActivities(res.data.data);
       setPagination(res.data.pagination);
     } catch (err) {
@@ -74,6 +78,8 @@ export default function ActivitiesPage({ type }) {
 
   // Sync columns when type changes
   useEffect(() => {
+    const isInteraction = ['call', 'email', 'meeting', 'note'].includes(type);
+
     const baseColumns = [
       {
         key: 'subject', label: 'Subject', type: 'text', sortable: true, render: (row) => (
@@ -94,7 +100,7 @@ export default function ActivitiesPage({ type }) {
             <span className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">{row.onModel}</span>
           </div>
         ) : (
-          <span className="text-gray-400 italic">Deleted Record</span>
+          <span className="text-gray-400 italic">Global / Deleted</span>
         )
       }
     ];
@@ -122,6 +128,48 @@ export default function ActivitiesPage({ type }) {
       });
     }
 
+    if (type === 'system') {
+      baseColumns.push({
+        key: 'action', label: 'Action', type: 'text', render: (row) => (
+          <span className={`badge px-2 py-0.5 text-[10px] uppercase font-bold ${
+            row.action === 'created' || row.action === 'login' ? 'bg-green-100 text-green-700' : 
+            row.action === 'deleted' || row.action === 'failed_login' ? 'bg-red-100 text-red-700' : 
+            row.action === 'viewed' ? 'bg-indigo-100 text-indigo-700' :
+            'bg-blue-100 text-blue-700'
+          }`}>
+            {row.action?.replace('_', ' ')}
+          </span>
+        )
+      });
+      baseColumns.push({
+        key: 'description', label: 'Details', type: 'text', render: (row) => (
+          <span className="text-xs text-gray-600 truncate max-w-[200px]" title={row.description}>
+            {row.description || '—'}
+          </span>
+        )
+      });
+      baseColumns.push({
+        key: 'requestMethod', label: 'Method', type: 'text', render: (row) => (
+          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded font-mono ${
+            row.requestMethod === 'GET' ? 'text-blue-600 bg-blue-50' :
+            row.requestMethod === 'POST' ? 'text-green-600 bg-green-50' :
+            row.requestMethod === 'PUT' ? 'text-orange-600 bg-orange-50' :
+            row.requestMethod === 'DELETE' ? 'text-red-600 bg-red-50' :
+            'text-gray-400'
+          }`}>
+            {row.requestMethod || '—'}
+          </span>
+        )
+      });
+      baseColumns.push({
+        key: 'requestUrl', label: 'Path', type: 'text', render: (row) => (
+          <span className="text-[10px] text-gray-400 font-mono truncate max-w-[150px]" title={row.requestUrl}>
+            {row.requestUrl || '—'}
+          </span>
+        )
+      });
+    }
+
     baseColumns.push({
       key: 'activityDate', label: statusTab === 'scheduled' ? 'Scheduled For' : 'Date', sortable: true, type: 'date', render: (row) => (
         <div className="flex flex-col">
@@ -131,26 +179,38 @@ export default function ActivitiesPage({ type }) {
       )
     });
 
+    if (isInteraction) {
+      baseColumns.push({
+        key: 'status', label: 'Status', type: 'text', 
+        options: [
+          { value: 'scheduled', label: 'Scheduled' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'cancelled', label: 'Cancelled' }
+        ],
+        render: (row) => (
+          <span className={`badge shrink-0 py-0.5 text-[10px] font-bold ${row.status === 'scheduled' ? 'bg-orange-100 text-orange-600' : row.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-green-100 text-green-600'}`}>
+            {capitalize(row.status || 'system')}
+          </span>
+        )
+      });
+    }
+
     baseColumns.push({
-      key: 'status', label: 'Status', type: 'text', 
-      options: [
-        { value: 'scheduled', label: 'Scheduled' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' }
-      ],
-      render: (row) => (
-        <span className={`badge shrink-0 py-0.5 text-[10px] font-bold ${row.status === 'scheduled' ? 'bg-orange-100 text-orange-600' : row.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-green-100 text-green-600'}`}>
-          {capitalize(row.status)}
-        </span>
+      key: 'createdBy', label: 'Done By', type: 'text', render: (row) => (
+        <span className="text-xs font-semibold text-gray-700">{row.createdBy?.name || 'System'}</span>
       )
     });
 
     setColumns(baseColumns);
   }, [type, statusTab]);
 
+  const getEndpoint = useCallback(() => {
+    return ['call', 'email', 'meeting'].includes(type) ? '/customer-activities' : '/activities';
+  }, [type]);
+
   const handleDelete = async () => {
     try {
-      await api.delete(`/activities/${deleteId}`);
+      await api.delete(`${getEndpoint()}/${deleteId}`);
       toast.success('Activity deleted successfully');
       setDeleteId(null);
       fetchActivities();
@@ -161,7 +221,7 @@ export default function ActivitiesPage({ type }) {
 
   const updateStatus = async (activityId, newStatus) => {
     try {
-      await api.put(`/activities/${activityId}`, { status: newStatus });
+      await api.put(`${getEndpoint()}/${activityId}`, { status: newStatus });
       toast.success(`Activity marked as ${newStatus}`);
       fetchActivities();
     } catch (err) {
@@ -171,7 +231,7 @@ export default function ActivitiesPage({ type }) {
 
   const handleView = async (activity) => {
     try {
-      const res = await api.get(`/activities/${activity._id}`);
+      const res = await api.get(`${getEndpoint()}/${activity._id}`);
       setViewData(res.data.data);
     } catch (err) {
       toast.error('Failed to load activity details');

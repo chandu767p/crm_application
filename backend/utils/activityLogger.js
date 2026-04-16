@@ -8,20 +8,22 @@ const Activity = require('../models/Activity');
  * @param {String} action - 'created', 'updated', 'deleted', etc.
  * @param {Object} details - { field, oldValue, newValue, description, subject }
  */
-const logActivity = async (req, entityId, entityType, action, details = {}) => {
+ const logActivity = async (req, entityId, entityType, action, details = {}) => {
   try {
     const activityData = {
       type: 'system',
       action,
       entityType,
-      relatedTo: entityId,
-      onModel: entityType,
-      createdBy: req.user ? req.user.id : null,
+      relatedTo: entityId || null,
+      onModel: details.onModel || entityType,
+      createdBy: req.user ? req.user.id : (details.createdBy || null),
       subject: details.subject || `${entityType} ${action}`,
       description: details.description || '',
       field: details.field || null,
       oldValue: details.oldValue,
       newValue: details.newValue,
+      requestUrl: req.originalUrl || req.url,
+      requestMethod: req.method,
     };
 
     // Special case for manual "logged" activities if needed
@@ -31,6 +33,16 @@ const logActivity = async (req, entityId, entityType, action, details = {}) => {
   } catch (err) {
     console.error('Activity Logging Error:', err);
   }
+};
+
+/**
+ * Log a record view
+ */
+const logRecordView = async (req, entityId, entityType, entityName) => {
+  return logActivity(req, entityId, entityType, 'viewed', {
+    subject: `Viewed ${entityType}: ${entityName || entityId}`,
+    description: `User accessed the details of ${entityType} "${entityName || entityId}"`
+  });
 };
 
 /**
@@ -75,5 +87,6 @@ const logFieldChanges = async (req, entityId, entityType, oldData, newData, fiel
 
 module.exports = {
   logActivity,
-  logFieldChanges
+  logFieldChanges,
+  logRecordView
 };
